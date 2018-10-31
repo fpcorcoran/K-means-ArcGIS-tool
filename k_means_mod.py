@@ -48,5 +48,5 @@ def k_means(X, k):
             points = np.array([X[j] for j in range(len(X)) if clusters[j]==i])
             Cxy[i] = np.mean(points, axis=0)
         error = dist(Cxy, C_old, None)
-
+        
     return Cxy
