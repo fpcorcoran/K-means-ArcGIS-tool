@@ -25,6 +25,7 @@ import arcpy
 import numpy as np
 from jarvis_march import jarvis_march
 from k_means_mod import k_means
+from kmeansplusplus import plusplus
 
 arcpy.env.overwriteOutput=True
 
@@ -52,11 +53,15 @@ if k > len(X):
     quit()
 
 try:
-    Cxy,pos = k_means(x,y,k)
+    arcpy.AddMessage("Initializing Cluster Centroids...")
+    Centroids = plusplus(X, k)
+    arcpy.AddMessage("Adjusting Centroid Locations...")
+    Cxy = k_means(X, k, Centroids)
     
 except Exception as e:
-    arcpy.AddError("\n"+"Error Computing Centroids: \n\n\t"+e.message+"\n")
+    exc_tb = sys.exc_info()[2] #Get Line Number
+    arcpy.AddError('\n'
+                   +"Error Computing Centroids: \n\n\t"+"In line "
+                   +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
 
 arcpy.AddMessage(Cxy)
-arcpy.AddMessage(pos)
-

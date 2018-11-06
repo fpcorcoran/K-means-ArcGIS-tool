@@ -4,19 +4,14 @@ from copy import deepcopy
 """
 Compute The K-means cluster centroids.
 """
-def k_means(x,y, k):
+def k_means(X, k, Centroids):
 
     #Eucledian Distance function 
     def dist(a, b, ax=1):
         return np.linalg.norm(a-b, axis=ax)
-
-    #Break Down X into x&y
-    X = np.array(list(zip(x,y)))
     
-    #Randomly Initialize k number of points
-    Cx = np.random.choice(range(int(np.min(x)), int(np.max(x))),k, replace=False)
-    Cy = np.random.choice(range(int(np.min(y)), int(np.max(y))),k, replace=False) 
-    Cxy = np.array(list(zip(Cx, Cy)), dtype=np.float32)
+    #Initiate Centroids from ++ algorithm
+    Cxy = Centroids
 
     #Initialize array for containing previous centroid locations
     C_old = np.zeros(Cxy.shape)
@@ -44,4 +39,4 @@ def k_means(x,y, k):
                 Cxy[i] = np.mean(points, axis=0)   
         error = dist(Cxy, C_old, None).astype(np.double)
 
-    return Cxy, list(zip(Cx,Cy))
+    return Cxy
