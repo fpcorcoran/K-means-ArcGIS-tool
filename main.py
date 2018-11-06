@@ -21,6 +21,9 @@ To create an ArcToolbox tool with which to execute this script, do the following
 7   To later revise any of this, right-click to the tool's name and select Properties.
 """
 
+import arcpy
+import numpy as np
+from jarvis_march import jarvis_march
 from k_means_mod import k_means
 
 arcpy.env.overwriteOutput=True
@@ -29,10 +32,10 @@ arcpy.env.overwriteOutput=True
 input_points = arcpy.GetParameterAsText(0)
 k = int(arcpy.GetParameterAsText(1))
 k_optimized = arcpy.GetParameterAsText(2)
-spatial_ref = arcpy.Describe(input_points).spatialReference
-output_centroids = arcpy.GetParameterAsText(3)
-output_clustered = arcpy.GetParameterAsText(4)
-output_convexhull = arcpy.GetParameterAsText(5)
+##spatial_ref = arcpy.Describe(input_points).spatialReference
+##output_centroids = arcpy.GetParameterAsText(3)
+##output_clustered = arcpy.GetParameterAsText(4)
+##output_convexhull = arcpy.GetParameterAsText(5)
 
 #Organize Data as X/Y Coordinates
 x = arcpy.da.TableToNumPyArray(input_points, "SHAPE@X").astype(float)
@@ -49,7 +52,11 @@ if k > len(X):
     quit()
 
 try:
-    Cxy = k_means(X,k)
+    Cxy,pos = k_means(x,y,k)
     
 except Exception as e:
     arcpy.AddError("\n"+"Error Computing Centroids: \n\n\t"+e.message+"\n")
+
+arcpy.AddMessage(Cxy)
+arcpy.AddMessage(pos)
+

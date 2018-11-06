@@ -1,29 +1,21 @@
-import arcpy
 import numpy as np
+from copy import deepcopy
 
 """
 Compute The K-means cluster centroids.
 """
-def k_means(X, k):
+def k_means(x,y, k):
 
     #Eucledian Distance function 
     def dist(a, b, ax=1):
         return np.linalg.norm(a-b, axis=ax)
 
-    #NumPy Vector Between Two Points
-    def vector(a,b):
-        one = np.array([a[0], a[1]])
-        two = np.array([b[0], b[1]])
-        return two-one
-
-    #Angle Between Two Vectors
-    def angle(v1, v2):
-        cos = np.dot(v1, v2)
-        sin = np.linalg.norm(np.cross(v1, v2))
-        return np.arctan2(sin, cos)
+    #Break Down X into x&y
+    X = np.array(list(zip(x,y)))
     
-    #Randomly Initialize k number of points 
-    Cx, Cy = rand.randint(int(np.min(x)), int(np.max(x)), size=k), rand.randint(np.min(y), np.max(y), size=k) 
+    #Randomly Initialize k number of points
+    Cx = np.random.choice(range(int(np.min(x)), int(np.max(x))),k, replace=False)
+    Cy = np.random.choice(range(int(np.min(y)), int(np.max(y))),k, replace=False) 
     Cxy = np.array(list(zip(Cx, Cy)), dtype=np.float32)
 
     #Initialize array for containing previous centroid locations
@@ -45,8 +37,11 @@ def k_means(X, k):
         
         #Update
         for i in range(k):
-            points = np.array([X[j] for j in range(len(X)) if clusters[j]==i])
-            Cxy[i] = np.mean(points, axis=0)
-        error = dist(Cxy, C_old, None)
-        
-    return Cxy
+            if np.isnan(Cxy[i]).any() == True:
+                Cxy[i] = np.array(list(zip(Cx[i]*1.25,Cy[i]*1.25)))
+            else:
+                points = np.array([X[j] for j in range(len(X)) if clusters[j]==i])
+                Cxy[i] = np.mean(points, axis=0)   
+        error = dist(Cxy, C_old, None).astype(np.double)
+
+    return Cxy, list(zip(Cx,Cy))
