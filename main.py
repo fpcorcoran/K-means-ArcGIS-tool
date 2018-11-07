@@ -56,7 +56,7 @@ try:
     arcpy.AddMessage("Initializing Cluster Centroids...")
     Centroids = plusplus(X, k)
     arcpy.AddMessage("Adjusting Centroid Locations...")
-    Cxy = k_means(X, k, Centroids)
+    Cxy, points = k_means(X, k, Centroids)
     
 except Exception as e:
     exc_tb = sys.exc_info()[2] #Get Line Number
@@ -64,4 +64,4 @@ except Exception as e:
                    +"Error Computing Centroids: \n\n\t"+"In line "
                    +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
 
-arcpy.AddMessage(Cxy)
+arcpy.AddMessage(points)

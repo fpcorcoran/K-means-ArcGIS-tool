@@ -22,6 +22,8 @@ def k_means(X, k, Centroids):
     #Initialize Error Parameter (distance between previous and new cluster centroids
     error = dist(Cxy, C_old, None)
 
+    #Dictionary for holding point data
+    clst_pnts = {}
     #K-Means Clustering Algorithm
     while error >= 0.001:
         #Assignment
@@ -32,11 +34,12 @@ def k_means(X, k, Centroids):
         
         #Update
         for i in range(k):
-            if np.isnan(Cxy[i]).any() == True:
-                Cxy[i] = np.array(list(zip(Cx[i]*1.25,Cy[i]*1.25)))
-            else:
-                points = np.array([X[j] for j in range(len(X)) if clusters[j]==i])
-                Cxy[i] = np.mean(points, axis=0)   
+            points = np.array([X[j] for j in range(len(X)) if clusters[j]==i])
+            Cxy[i] = np.mean(points, axis=0)
+    
         error = dist(Cxy, C_old, None).astype(np.double)
 
-    return Cxy
+    for i in range(k):
+        clst_pnts[i] = np.array([X[j] for j in range(len(X)) if clusters[j]==i])
+
+    return Cxy, clst_pnts
