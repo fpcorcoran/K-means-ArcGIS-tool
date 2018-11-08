@@ -26,6 +26,7 @@ import numpy as np
 from jarvis_march import jarvis_march
 from k_means_mod import k_means
 from kmeansplusplus import plusplus
+from silhouette import silhouette
 
 arcpy.env.overwriteOutput=True
 
@@ -64,4 +65,15 @@ except Exception as e:
                    +"Error Computing Centroids: \n\n\t"+"In line "
                    +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
 
-arcpy.AddMessage(points)
+try:
+    arcpy.AddMessage("Computing Average Silhouette Value...")
+    average, sils = silhouette(points)
+
+except Exception as e:
+    exc_tb = sys.exc_info()[2] #Get Line Number
+    arcpy.AddError('\n'
+                   +"Error Computing Silhouette: \n\n\t"+"In line "
+                   +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")  
+
+arcpy.AddMessage(average)
+arcpy.AddMessage(sils)
