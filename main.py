@@ -34,10 +34,10 @@ arcpy.env.overwriteOutput=True
 input_points = arcpy.GetParameterAsText(0)
 k = int(arcpy.GetParameterAsText(1))
 k_optimized = arcpy.GetParameterAsText(2)
-##spatial_ref = arcpy.Describe(input_points).spatialReference
-##output_centroids = arcpy.GetParameterAsText(3)
-##output_clustered = arcpy.GetParameterAsText(4)
-##output_convexhull = arcpy.GetParameterAsText(5)
+spatial_ref = arcpy.Describe(input_points).spatialReference
+output_centroids = arcpy.GetParameterAsText(3)
+output_clustered = arcpy.GetParameterAsText(4)
+output_convexhull = arcpy.GetParameterAsText(5)
 
 #Organize Data as X/Y Coordinates
 x = arcpy.da.TableToNumPyArray(input_points, "SHAPE@X").astype(float)
@@ -53,7 +53,6 @@ if str(k_optimized)=='true':
             arcpy.AddMessage("Testing K = "+str(K))
             Centroids = plusplus(X,K)
             Cxy, points = k_means(X,K,Centroids)
-            #arcpy.AddMessage(points)
             average, sils = silhouette(points)
             Silhouettes.append(average)
         arcpy.AddMessage('\r'+'\n'+"Average Silhouette Values:"+'\n'+'\r')
