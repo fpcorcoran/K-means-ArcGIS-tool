@@ -46,34 +46,51 @@ X = np.array(list(zip(x,y)))
 
 #Check for Optimization
 if str(k_optimized)=='true':
-    arcpy.AddMessage("K Optimization Feature Still in Production")
+    try:
+        k_max = 20
+        Silhouettes=[]
+        for K in range(2,k_max):
+            arcpy.AddMessage("Testing K = "+str(K))
+            Centroids = plusplus(X,K)
+            Cxy, points = k_means(X,K,Centroids)
+            #arcpy.AddMessage(points)
+            average, sils = silhouette(points)
+            Silhouettes.append(average)
+        arcpy.AddMessage('\r'+'\n'+"Average Silhouette Values:"+'\n'+'\r')
+        arcpy.AddMessage(Silhouettes)
+        
+    except Exception as e:
+        exc_tb = sys.exc_info()[2] #Get Line Number
+        arcpy.AddError('\n'
+                       +"Error Optimizing K: \n\n\t"+"In line "
+                       +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
+else:      
+    #Control for Error in K input
+    if k > len(X):
+        arcpy.AddError("ERROR: K must be less than or equal to number of points")
+        quit()
 
-#Control for Error in K input
-if k > len(X):
-    arcpy.AddError("ERROR: K must be less than or equal to number of points")
-    quit()
+    try:
+        arcpy.AddMessage("Initializing Cluster Centroids...")
+        Centroids = plusplus(X, k)
+        arcpy.AddMessage("Adjusting Centroid Locations...")
+        Cxy, points = k_means(X, k, Centroids)
+        
+    except Exception as e:
+        exc_tb = sys.exc_info()[2] #Get Line Number
+        arcpy.AddError('\n'
+                       +"Error Computing Centroids: \n\n\t"+"In line "
+                       +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
 
-try:
-    arcpy.AddMessage("Initializing Cluster Centroids...")
-    Centroids = plusplus(X, k)
-    arcpy.AddMessage("Adjusting Centroid Locations...")
-    Cxy, points = k_means(X, k, Centroids)
-    
-except Exception as e:
-    exc_tb = sys.exc_info()[2] #Get Line Number
-    arcpy.AddError('\n'
-                   +"Error Computing Centroids: \n\n\t"+"In line "
-                   +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
+    try:
+        arcpy.AddMessage("Computing Average Silhouette Value...")
+        average, sils = silhouette(points)
 
-try:
-    arcpy.AddMessage("Computing Average Silhouette Value...")
-    average, sils = silhouette(points)
+    except Exception as e:
+        exc_tb = sys.exc_info()[2] #Get Line Number
+        arcpy.AddError('\n'
+                       +"Error Computing Silhouette: \n\n\t"+"In line "
+                       +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")  
 
-except Exception as e:
-    exc_tb = sys.exc_info()[2] #Get Line Number
-    arcpy.AddError('\n'
-                   +"Error Computing Silhouette: \n\n\t"+"In line "
-                   +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")  
-
-arcpy.AddMessage(average)
-arcpy.AddMessage(sils)
+    arcpy.AddMessage(average)
+    arcpy.AddMessage(sils)

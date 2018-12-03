@@ -21,18 +21,13 @@ def plusplus(XY,k):
     distances = []
     centroids = []
     
-    i=0
-    while i < k:
-        #find squared distances from previous centroid, create probabilities
+    for i in range(k):
+        centroids += [old_centroid]
+        XY = np.delete(XY,idx,axis=0)
         distances += [dist(old_centroid,j,None)**2 for j in XY]
         probabilities = weight_prob(distances)
-
-        #Choose new centroid based on probability, controlling for duplicates
         idx = np.random.choice(np.arange(len(XY)),p=probabilities)
-        if np.all(centroids != XY[idx]):
-            centroids += [old_centroid]
-            old_centroid = XY[idx]
-            i+=1  
+        old_centroid = XY[idx]
         distances = []
     
     return np.asarray(centroids)
