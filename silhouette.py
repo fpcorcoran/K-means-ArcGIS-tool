@@ -29,8 +29,8 @@ def silhouette(points):
     silhouette={}
     avg =[]
     for i in range(len(a)):
-        silhouette[i]=(b[i]-a[i])/np.max([b[i],a[i]])
-        avg += [(b[i]-a[i])/np.max([b[i],a[i]])] 
+        silhouette[i] = (b[i]-a[i]) / np.max([b[i],a[i]])
+        avg += [(b[i]-a[i]) / np.max([b[i],a[i]])] 
     avg = np.mean(avg)
 
     return avg, silhouette

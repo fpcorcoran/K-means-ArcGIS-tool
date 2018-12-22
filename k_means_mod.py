@@ -42,4 +42,4 @@ def k_means(X, k, Centroids):
     for i in range(k):
         clst_pnts[i] = np.array([X[j] for j in range(len(X)) if clusters[j]==i])
 
-    return Cxy, clst_pnts
+    return Cxy, clst_pnts, clusters

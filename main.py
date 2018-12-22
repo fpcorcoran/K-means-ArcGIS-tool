@@ -49,12 +49,14 @@ if str(k_optimized)=='true':
     try:
         k_max = 20
         Silhouettes=[]
-        for K in range(2,k_max):
+        K=2
+        while K < 20:
             arcpy.AddMessage("Testing K = "+str(K))
             Centroids = plusplus(X,K)
-            Cxy, points = k_means(X,K,Centroids)
+            Cxy, points, clusters = k_means(X,K,Centroids)
             average, sils = silhouette(points)
             Silhouettes.append(average)
+            K+=1
         arcpy.AddMessage('\r'+'\n'+"Average Silhouette Values:"+'\n'+'\r')
         arcpy.AddMessage(Silhouettes)
         
@@ -69,27 +71,120 @@ else:
         arcpy.AddError("ERROR: K must be less than or equal to number of points")
         quit()
 
+    #Use K Means++ Algorithm to set and adjust initial centroid location
     try:
-        arcpy.AddMessage("Initializing Cluster Centroids...")
+        arcpy.AddMessage("\r\nInitializing Cluster Centroids...")
         Centroids = plusplus(X, k)
-        arcpy.AddMessage("Adjusting Centroid Locations...")
-        Cxy, points = k_means(X, k, Centroids)
+        arcpy.AddMessage("\r\nAdjusting Centroid Locations...")
+        Cxy, points, clusters = k_means(X, k, Centroids)
         
     except Exception as e:
         exc_tb = sys.exc_info()[2] #Get Line Number
         arcpy.AddError('\n'
                        +"Error Computing Centroids: \n\n\t"+"In line "
                        +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
-
+    
+    #Get Silhouette Value for Clustering Analysis as Metric
     try:
-        arcpy.AddMessage("Computing Average Silhouette Value...")
+        arcpy.AddMessage("\r\nComputing Average Silhouette Value...")
         average, sils = silhouette(points)
+        arcpy.AddMessage("\r\nAverage Silhouette Value at "+str(k)+" : "+str(average))
 
     except Exception as e:
         exc_tb = sys.exc_info()[2] #Get Line Number
         arcpy.AddError('\n'
                        +"Error Computing Silhouette: \n\n\t"+"In line "
-                       +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")  
+                       +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
+        
+    #Compute Convex Hull Using Jarvis March
+    try:
+        arcpy.AddMessage("\r\nComputing Jarvis March of clusters...")
+        Vertices = jarvis_march(points, k)
+        
+    except Exception as e:
+        exc_tb = sys.exc_info()[2] #Get Line Number
+        arcpy.AddError('\n'
+                       +"Error Computing Jarvis March: \n\n\t"+"In line "
+                       +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
+    
+try:
+    #Initialize Variables and Append XY Centroid Data
+    Centroidfile=[]
+    Pointfile = arcpy.Point()
 
-    arcpy.AddMessage(average)
-    arcpy.AddMessage(sils)
+    for pts in Cxy:
+        Pointfile.X = float(pts[0])
+        Pointfile.Y = float(pts[1])
+
+        Centroidfile.append(arcpy.PointGeometry(Pointfile,spatial_ref))
+
+    #Create New File Containing Centroids
+    arcpy.CopyFeatures_management(Centroidfile, output_centroids)
+
+except Exception as e:
+    exc_tb = sys.exc_info()[2] #Get Line Number
+    arcpy.AddError('\n'
+                    +"Error Exporting Centroids as Shapefile: \n\n\t"+"In line "
+                    +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
+
+try:
+    #Copy the input points to the output clusters
+    arcpy.CopyFeatures_management(input_points, output_clustered)
+
+    arcpy.AddField_management(output_clustered, "Clust_Num", "SHORT", 5,5)
+    update_records = arcpy.UpdateCursor(output_clustered)
+
+    i=0
+    for NextRecord in update_records:
+        NextRecord.setValue("Clust_Num", clusters[i]+1)
+        update_records.updateRow(NextRecord)
+        i+=1
+
+    del NextRecord
+    del update_records
+
+
+except Exception as e:
+    exc_tb = sys.exc_info()[2] #Get Line Number
+    arcpy.AddError('\n'
+                    +"Error Exporting Centroids as Shapefile: \n\n\t"+"In line "
+                    +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
+
+try:
+    
+    myListOfPolygons = []
+    
+    for i in Vertices:
+        myPoint = arcpy.Point()
+        myArrayOfPoints = arcpy.Array()
+        for vertex in Vertices[i]:
+            myPoint.X = vertex[0]
+            myPoint.Y = vertex[1]
+            
+            myArrayOfPoints.add(myPoint)
+            
+        newPolygon = arcpy.Polygon(myArrayOfPoints)
+        myListOfPolygons.append(newPolygon)
+        
+    arcpy.CopyFeatures_management(myListOfPolygons, output_convexhull)
+
+    arcpy.AddField_management(output_convexhull, "Clust_Num", "SHORT", 5,5)
+    update_records = arcpy.UpdateCursor(output_convexhull)
+
+    i=0
+    for NextRecord in update_records:
+        NextRecord.setValue("Clust_Num", i+1)
+        update_records.updateRow(NextRecord)
+        i+=1
+
+    del NextRecord
+    del update_records
+    
+except Exception as e:
+    exc_tb = sys.exc_info()[2] #Get Line Number
+    arcpy.AddError('\n'
+                    +"Error Exporting Convex Hulls: \n\n\t"+"In line "
+                    +str(exc_tb.tb_lineno)+": "+str(e.message)+"\n")
+    
+
+
